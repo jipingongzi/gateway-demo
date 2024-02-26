@@ -10,7 +10,9 @@
 <script>
     var ws;
     function connectWebSocket() {
-        ws = new WebSocket('ws://localhost:8080/websocket/echo');
+        var params = new URLSearchParams(window.location.search);
+        var userId = params.get('userId');
+        ws = new WebSocket('ws://localhost:8080/websocket/echo?userId=' + userId);
 
         ws.onopen = function (event) {
             console.log('Connection is open ...');

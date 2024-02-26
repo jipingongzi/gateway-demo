@@ -8,32 +8,44 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Component
 public class EchoHandler implements WebSocketHandler {
 
+    private Map<String, List<WebSocketSession>> userSessionsMap = new ConcurrentHashMap<>();
+    private Map<String, Flux<String>> userFluxMap = new ConcurrentHashMap<>();
+
+    private String getUserId(WebSocketSession session) {
+        String query = session.getHandshakeInfo().getUri().getQuery();
+        return Arrays.stream(query.split("&"))
+                .map(param -> param.split("="))
+                .filter(keyValue -> keyValue[0].equals("userId"))
+                .findFirst()
+                .map(keyValue -> keyValue[1]).orElse("defaultUser");
+    }
+
+    private Flux<String> createFlux() {
+        Flux<Long> seed = Flux.interval(Duration.ofSeconds(1));
+        return seed.map(seq -> "msg-" + seq).share();
+    }
+
     @Override
-    public Mono<Void> handle(final WebSocketSession session) {
-        AtomicReference<Disposable> subscription = new AtomicReference<>();
+    public Mono<Void> handle(WebSocketSession session) {
+        String userId = getUserId(session);
+        userSessionsMap.computeIfAbsent(userId, k -> Collections.synchronizedList(new ArrayList<>())).add(session);
 
-        return session.receive()
-                .flatMap(message -> {
-
-                    Disposable oldSubscription = subscription.getAndSet(null);
-                    if (oldSubscription != null)
-                        oldSubscription.dispose();
-
-                    String payload = message.getPayloadAsText();
-
-                    Disposable disposable = Flux.interval(Duration.ofSeconds(1))
-                            .map(seq -> session.textMessage(payload + "-" + seq))
-                            .flatMap(msg -> session.send(Mono.just(msg)))
-                            .subscribe();
-
-                    subscription.set(disposable);
-
-                    return Mono.empty();  // Return an empty Mono to keep processing chain alive
-                }).then();
+        Flux<String> flux = userFluxMap.computeIfAbsent(userId, u -> createFlux());
+        return session.send(flux.map(session::textMessage))
+                .doFinally(signal -> {
+                    List<WebSocketSession> sessions = userSessionsMap.get(userId);
+                    sessions.remove(session);
+                    if (sessions.isEmpty()) {
+                        userSessionsMap.remove(userId);
+                        userFluxMap.remove(userId);
+                    }
+                });
     }
 }
