@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>NETTY SOCKET.IO DEMO</title>
+  <base>
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+  <script src="https://cdn.bootcss.com/socket.io/2.2.0/socket.io.js"></script>
+</head>
+
+<body>
+
+<div style="float: left;">
+
+  <input type="text" id="message"/>
+  <input type="submit" id="submit" onclick="send()"/>
+</div>
+</body>
+
+<script type="text/javascript">
+    var socket;
+
+    function connect(btn) {
+    //这里填写之前设置的Netty-Socketio服务器端口，整合网关后需要把这里的8083端口改成网关的端口
+        socket =  io.connect('http://localhost:8083', {
+            transports:['websocket']
+        });
+        socket.on('connect', function(data) {
+           console.log("connect")
+        });
+
+        socket.on('receiveMsg', function(data) {
+            console.log("receive msg")
+        });
+
+        $(btn).attr("onclick","disconnect(this)");
+    }
+    function send() {
+        socket.emit('message',{message:$("#message").val()});
+    }
+
+    connect(this);
+    socket.emit('room', 'CDU-ROOM');
+</script>
+</html>

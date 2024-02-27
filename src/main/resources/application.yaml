@@ -1,14 +1,19 @@
-spring:
-  cloud:
-    gateway:
-      routes:
-        - id: user_service
-          uri: http://localhost:8081
-          predicates:
-            - Path=/user/**
-        - id: order_service
-          uri: http://localhost:8082
-          predicates:
-            - Path=/order/**
-          filters:
-            - name: OrderServiceFilter
+#spring:
+#  cloud:
+#    gateway:
+#      routes:
+#        - id: user_service
+#          uri: http://localhost:8081
+#          predicates:
+#            - Path=/user/**
+#        - id: order_service
+#          uri: http://localhost:8082
+#          predicates:
+#            - Path=/order/**
+#          filters:
+#            - name: OrderServiceFilter
+server:
+  port: 8080
+socketio:
+  host: localhost
+  port: 8081
