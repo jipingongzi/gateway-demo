@@ -20,6 +20,7 @@ public class GatewayDemoApplication implements CommandLineRunner {
 	public SocketIOServer socketIOServer() {
 		Configuration config = new Configuration();
 		config.setPort(8083);	//Netty-Socketio服务器端口
+		config.setContext("/apiws");
 		this.server = new SocketIOServer(config);
 		return server;
 	}

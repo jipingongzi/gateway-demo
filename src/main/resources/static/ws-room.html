@@ -23,7 +23,8 @@
     function connect(btn) {
     //这里填写之前设置的Netty-Socketio服务器端口，整合网关后需要把这里的8083端口改成网关的端口
         socket =  io.connect('http://localhost:8083', {
-            transports:['websocket']
+            transports:['websocket'],
+             path: '/apiws'
         });
         socket.on('connect', function(data) {
            console.log("connect")
