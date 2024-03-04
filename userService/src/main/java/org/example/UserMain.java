@@ -16,7 +16,7 @@ public class UserMain {
     }
 
     @GetMapping("/info")
-    public String getApi(@RequestHeader("client-id")String clientId){
+    public String getApi(@RequestHeader(value = "client-id", required = false)String clientId){
         System.out.println(clientId);
         return "user";
     }
