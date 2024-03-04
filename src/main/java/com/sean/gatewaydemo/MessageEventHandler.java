@@ -9,9 +9,8 @@ import com.corundumstudio.socketio.annotation.OnEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class MessageEventHandler {
@@ -35,13 +34,15 @@ public class MessageEventHandler {
     }
 
     @OnEvent("message")
-    public void message(SocketIOClient client, AckRequest request, MessageEntity message) {
-        System.out.printf("receive msg: %s %s", message.getIsin(), message.getCorrelationId());
+    public void message(SocketIOClient client, AckRequest request, String topic, MessageBody body) {
+        System.out.printf("receive msg: %s %s %s", topic, body.getIsin(), body.getCorrelationId());
+        Map<String, String> result = new HashMap<>();
+        result.put("price", "97.25");
         if(client.getAllRooms().isEmpty()){
-            client.sendEvent("!!!!!!!!");
+            client.sendEvent(topic, result);
         }else {
             String room = client.getAllRooms().stream().findAny().get();
-            socketIoServer.getRoomOperations(room).sendEvent("!!!!!!");
+            socketIoServer.getRoomOperations(room).sendEvent(topic, result);
         }
     }
 

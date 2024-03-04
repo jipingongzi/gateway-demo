@@ -37,7 +37,12 @@
         $(btn).attr("onclick","disconnect(this)");
     }
     function send() {
-        socket.emit('message',{message:$("#message").val()});
+        var uuid = Math.random().toString(36).substr(2, 10);
+        var messageObj = {
+          isin: $("#message").val(),
+          correlationId : uuid
+        }
+        socket.emit('message', 'Topic/getIsin' + uuid, messageObj);
     }
 
     connect(this);
